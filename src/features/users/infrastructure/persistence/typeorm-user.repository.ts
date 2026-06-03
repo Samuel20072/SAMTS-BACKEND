@@ -15,10 +15,12 @@ export class TypeOrmUserRepository implements IUserRepository {
     return this.ormRepository.save(user);
   }
 
-  async findById(id: string): Promise<User | null> {
-    return this.ormRepository.findOne({
-      where: { id },
-    });
+  async findById(id: string, selectPassword?: boolean): Promise<User | null> {
+    const query = this.ormRepository.createQueryBuilder('user').where('user.id = :id', { id });
+    if (selectPassword) {
+      query.addSelect('user.password');
+    }
+    return query.getOne();
   }
 
   async findByEmail(email: string): Promise<User | null> {
@@ -27,8 +29,12 @@ export class TypeOrmUserRepository implements IUserRepository {
     });
   }
 
-  async findAll(): Promise<User[]> {
-    return this.ormRepository.find();
+  async findAll(clientId?: string | null): Promise<User[]> {
+    const where: any = {};
+    if (clientId) {
+      where.clientId = clientId;
+    }
+    return this.ormRepository.find({ where });
   }
 
   async delete(id: string): Promise<void> {

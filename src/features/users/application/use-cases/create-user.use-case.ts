@@ -9,7 +9,7 @@ import { User } from '../../domain/entities/user.entity';
 export class CreateUserUseCase {
   constructor(private readonly userRepository: IUserRepository) {}
 
-  async execute(dto: CreateUserDto): Promise<UserResponseDto> {
+  async execute(dto: CreateUserDto, clientId?: string | null): Promise<UserResponseDto> {
     const existingUser = await this.userRepository.findByEmail(dto.email);
     if (existingUser) {
       throw new ConflictException(`User with email ${dto.email} already exists`);
@@ -23,6 +23,9 @@ export class CreateUserUseCase {
     user.name = dto.name;
     if (dto.role) {
       user.role = dto.role;
+    }
+    if (clientId) {
+      user.clientId = clientId;
     }
 
     const savedUser = await this.userRepository.save(user);

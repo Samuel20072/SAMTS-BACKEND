@@ -6,8 +6,8 @@ import { UserResponseDto } from '../dtos/user-response.dto';
 export class FindAllUsersUseCase {
   constructor(private readonly userRepository: IUserRepository) {}
 
-  async execute(): Promise<UserResponseDto[]> {
-    const users = await this.userRepository.findAll();
+  async execute(clientId?: string | null): Promise<UserResponseDto[]> {
+    const users = await this.userRepository.findAll(clientId);
     return users.map((user) => UserResponseDto.fromEntity(user));
   }
 }
