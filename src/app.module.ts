@@ -3,8 +3,17 @@ import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { AuthModule } from './features/auth/auth.module';
 import { UsersModule } from './features/users/users.module';
-import { User } from './features/users/domain/entities/user.entity';
+import { ClientsModule } from './features/clients/clients.module';
+import { ProductsModule } from './features/products/products.module';
+import { SalesModule } from './features/sales/sales.module';
+import { BlogPostsModule } from './features/blog-posts/blog-posts.module';
+import { PromotionsModule } from './features/promotions/promotions.module';
+import { AISettingsModule } from './features/ai-settings/ai-settings.module';
+import { NotificationsModule } from './features/notifications/notifications.module';
+import { DashboardModule } from './features/dashboard/dashboard.module';
+import { AutomationsModule } from './features/automations/automations.module';
 
 @Module({
   imports: [
@@ -13,17 +22,27 @@ import { User } from './features/users/domain/entities/user.entity';
     }),
     TypeOrmModule.forRoot({
       type: 'postgres',
-      host: process.env.DB_HOST || 'localhost',
-      port: parseInt(process.env.DB_PORT || '5432', 10),
-      username: process.env.DB_USERNAME || 'postgres',
-      password: process.env.DB_PASSWORD || 'postgres',
-      database: process.env.DB_DATABASE || 'samts_db',
-      entities: [User],
+      url: process.env.DATABASE_URL,
+      autoLoadEntities: true,
       synchronize: process.env.NODE_ENV !== 'production',
+      ssl:
+        process.env.DB_SSL === 'true'
+          ? { rejectUnauthorized: false }
+          : false,
     }),
+    AuthModule,
     UsersModule,
+    ClientsModule,
+    ProductsModule,
+    SalesModule,
+    BlogPostsModule,
+    PromotionsModule,
+    AISettingsModule,
+    NotificationsModule,
+    DashboardModule,
+    AutomationsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule { }
