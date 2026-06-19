@@ -30,6 +30,15 @@ export class ProductResponseDto {
   featured: boolean;
 
   @ApiProperty()
+  priceType: string;
+
+  @ApiProperty()
+  features: string[];
+
+  @ApiProperty()
+  deliveryTime?: string;
+
+  @ApiProperty()
   isActive: boolean;
 
   @ApiProperty()
@@ -49,6 +58,9 @@ export class ProductResponseDto {
     dto.stock = product.stock;
     dto.category = product.category;
     dto.featured = product.featured;
+    dto.priceType = product.priceType || 'unique';
+    dto.features = product.features || [];
+    dto.deliveryTime = product.deliveryTime;
     dto.isActive = product.isActive;
     dto.createdAt = product.createdAt;
     dto.updatedAt = product.updatedAt;

@@ -32,6 +32,15 @@ export class Product extends BaseEntity {
   @Column({ default: false })
   featured: boolean;
 
+  @Column({ nullable: true, default: 'unique' })
+  priceType: string; // 'unique' | 'monthly' | 'annual'
+
+  @Column({ type: 'simple-json', nullable: true })
+  features: string[]; // Lista de características incluidas
+
+  @Column({ nullable: true })
+  deliveryTime: string; // Ej: '2-4 semanas'
+
   @Column({ default: true })
   isActive: boolean;
 }
