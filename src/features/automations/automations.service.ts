@@ -3,12 +3,16 @@ import { Cron, CronExpression } from '@nestjs/schedule';
 import { DataSource } from 'typeorm';
 import { Promotion } from '../promotions/domain/entities/promotion.entity';
 import { Client } from '../clients/domain/entities/client.entity';
+import { AiGenerationService } from '../ai-generation/application/ai-generation.service';
 
 @Injectable()
 export class AutomationsService {
   private readonly logger = new Logger(AutomationsService.name);
 
-  constructor(private readonly dataSource: DataSource) {}
+  constructor(
+    private readonly dataSource: DataSource,
+    private readonly aiGenerationService: AiGenerationService,
+  ) {}
 
   // 1. Promotion Expiration: Expire promotions where endDate <= current_timestamp
   // Runs every hour
@@ -66,7 +70,8 @@ export class AutomationsService {
           const settings = client.aiSettings;
           if (settings.autoGenerateBlogs || settings.autoGeneratePromotions || settings.autoGenerateSeo || settings.autoGenerateWhatsappMessages) {
             triggeredTasks++;
-            this.logger.debug(`[AI Queue] Triggered AI generation request for client ${client.businessName} (Tone: ${settings.businessTone}).`);
+            this.logger.debug(`[AI Queue] Triggering AI generation request for client ${client.businessName} (Tone: ${settings.businessTone}).`);
+            await this.aiGenerationService.generateForClient(client.id);
           }
         }
       }

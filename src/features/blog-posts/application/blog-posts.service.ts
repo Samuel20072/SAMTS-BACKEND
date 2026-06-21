@@ -74,6 +74,17 @@ export class BlogPostsService {
     return BlogPostResponseDto.fromEntity(blogPost);
   }
 
+  async findBySlug(slug: string, clientId: string | null): Promise<BlogPostResponseDto> {
+    const blogPost = await this.blogPostRepository.findBySlug(slug, clientId);
+    if (!blogPost) {
+      throw new NotFoundException(`Blog post with slug ${slug} not found`);
+    }
+    if (clientId && blogPost.clientId !== clientId) {
+      throw new ForbiddenException('You do not have access to this blog post');
+    }
+    return BlogPostResponseDto.fromEntity(blogPost);
+  }
+
   async findAll(
     clientId: string | null,
     options: { page?: number; limit?: number; status?: BlogStatus },

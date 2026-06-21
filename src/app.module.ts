@@ -14,6 +14,7 @@ import { AISettingsModule } from './features/ai-settings/ai-settings.module';
 import { NotificationsModule } from './features/notifications/notifications.module';
 import { DashboardModule } from './features/dashboard/dashboard.module';
 import { AutomationsModule } from './features/automations/automations.module';
+import { AiGenerationModule } from './features/ai-generation/ai-generation.module';
 
 @Module({
   imports: [
@@ -41,6 +42,7 @@ import { AutomationsModule } from './features/automations/automations.module';
     NotificationsModule,
     DashboardModule,
     AutomationsModule,
+    AiGenerationModule,
   ],
   controllers: [AppController],
   providers: [AppService],

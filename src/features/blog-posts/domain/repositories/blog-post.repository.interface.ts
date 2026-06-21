@@ -7,5 +7,6 @@ export abstract class IBlogPostRepository {
     clientId: string | null,
     options: { skip?: number; take?: number; status?: string },
   ): Promise<[BlogPost[], number]>;
+  abstract findBySlug(slug: string, clientId: string | null): Promise<BlogPost | null>;
   abstract delete(id: string): Promise<void>;
 }

@@ -22,6 +22,16 @@ export class TypeOrmBlogPostRepository implements IBlogPostRepository {
     });
   }
 
+  async findBySlug(slug: string, clientId: string | null): Promise<BlogPost | null> {
+    const where: any = { slug };
+    if (clientId) {
+      where.clientId = clientId;
+    }
+    return this.ormRepository.findOne({
+      where,
+    });
+  }
+
   async findAndCount(
     clientId: string | null,
     options: { skip?: number; take?: number; status?: BlogStatus },
