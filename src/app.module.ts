@@ -15,6 +15,7 @@ import { NotificationsModule } from './features/notifications/notifications.modu
 import { DashboardModule } from './features/dashboard/dashboard.module';
 import { AutomationsModule } from './features/automations/automations.module';
 import { AiGenerationModule } from './features/ai-generation/ai-generation.module';
+import { LeadMagnetModule } from './features/lead-magnet/lead-magnet.module';
 
 @Module({
   imports: [
@@ -43,6 +44,7 @@ import { AiGenerationModule } from './features/ai-generation/ai-generation.modul
     DashboardModule,
     AutomationsModule,
     AiGenerationModule,
+    LeadMagnetModule,
   ],
   controllers: [AppController],
   providers: [AppService],
