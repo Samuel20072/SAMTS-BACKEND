@@ -1,0 +1,30 @@
+import { ApiProperty } from '@nestjs/swagger';
+import { IsEnum, IsOptional, IsString, IsBoolean, IsDateString } from 'class-validator';
+import { LeadStatus } from '../../../../shared/enums/lead-status.enum';
+
+export class UpdateLeadStatusDto {
+  @ApiProperty({ enum: LeadStatus, required: false })
+  @IsEnum(LeadStatus)
+  @IsOptional()
+  status?: LeadStatus;
+
+  @ApiProperty({ required: false })
+  @IsString()
+  @IsOptional()
+  notes?: string;
+
+  @ApiProperty({ required: false })
+  @IsString()
+  @IsOptional()
+  nextAction?: string;
+
+  @ApiProperty({ required: false })
+  @IsDateString()
+  @IsOptional()
+  followUpDate?: string;
+
+  @ApiProperty({ required: false })
+  @IsBoolean()
+  @IsOptional()
+  convertedToClient?: boolean;
+}

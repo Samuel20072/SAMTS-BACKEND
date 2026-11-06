@@ -5,7 +5,6 @@ import {
   IsOptional,
   IsString,
   MaxLength,
-  MinLength,
 } from 'class-validator';
 
 export class CreateLeadMagnetLeadDto {
@@ -23,14 +22,20 @@ export class CreateLeadMagnetLeadDto {
   @ApiProperty({ example: '+573001234567', required: false })
   @IsString()
   @IsOptional()
-  @MaxLength(20)
+  @MaxLength(25)
   whatsapp?: string;
 
-  @ApiProperty({ example: 'Tienda online' })
+  @ApiProperty({ example: 'Tienda online', required: false })
   @IsString()
-  @IsNotEmpty()
+  @IsOptional()
   @MaxLength(100)
-  businessType: string;
+  businessType?: string;
+
+  @ApiProperty({ example: 'Boutique Elegance', required: false })
+  @IsString()
+  @IsOptional()
+  @MaxLength(150)
+  businessName?: string;
 
   @ApiProperty({
     example: 'Sí',
@@ -40,6 +45,44 @@ export class CreateLeadMagnetLeadDto {
   @IsString()
   @IsOptional()
   hasWebsite?: string;
+
+  @ApiProperty({ example: 'Necesito captar más clientes y vender en línea', required: false })
+  @IsString()
+  @IsOptional()
+  mainProblem?: string;
+
+  @ApiProperty({ example: 'Sitio Web Profesional', required: false })
+  @IsString()
+  @IsOptional()
+  @MaxLength(150)
+  solutionInterest?: string;
+
+  @ApiProperty({ example: '$2.500.000 COP', required: false })
+  @IsString()
+  @IsOptional()
+  @MaxLength(100)
+  budget?: string;
+
+  @ApiProperty({ example: 'Inmediata (1-2 semanas)', required: false })
+  @IsString()
+  @IsOptional()
+  @MaxLength(100)
+  urgency?: string;
+
+  @ApiProperty({ example: 'Requiero catálogo con pasarela y panel administrativo', required: false })
+  @IsString()
+  @IsOptional()
+  details?: string;
+
+  @ApiProperty({ required: false })
+  @IsString()
+  @IsOptional()
+  diagnosticSessionId?: string;
+
+  @ApiProperty({ example: 'lead_magnet_pdf', required: false })
+  @IsString()
+  @IsOptional()
+  campaign?: string;
 
   // UTM Attribution
   @ApiProperty({ required: false })
