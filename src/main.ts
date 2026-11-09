@@ -10,7 +10,15 @@ async function bootstrap() {
   app.setGlobalPrefix('api');
 
   // Enable CORS
-  app.enableCors();
+  app.enableCors({
+    origin: [
+      'https://samts.app',
+      'https://www.samts.app',
+      'http://localhost:4000',
+      'http://localhost:3001',
+    ],
+    credentials: true,
+  });
 
   // Set global validation pipes
   app.useGlobalPipes(
