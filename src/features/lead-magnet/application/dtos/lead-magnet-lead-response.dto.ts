@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { LeadMagnetLead } from '../../domain/entities/lead-magnet-lead.entity';
+import { LeadStatus } from '../../../../shared/enums/lead-status.enum';
 
 export class LeadMagnetLeadResponseDto {
   @ApiProperty() id: string;
@@ -7,7 +8,18 @@ export class LeadMagnetLeadResponseDto {
   @ApiProperty() email: string;
   @ApiProperty() whatsapp?: string;
   @ApiProperty() businessType: string;
+  @ApiProperty() businessName?: string;
   @ApiProperty() hasWebsite?: string;
+  @ApiProperty() mainProblem?: string;
+  @ApiProperty() solutionInterest?: string;
+  @ApiProperty() budget?: string;
+  @ApiProperty() urgency?: string;
+  @ApiProperty() details?: string;
+  @ApiProperty() diagnosticSessionId?: string;
+  @ApiProperty({ enum: LeadStatus }) status: LeadStatus;
+  @ApiProperty() notes?: string;
+  @ApiProperty() nextAction?: string;
+  @ApiProperty() followUpDate?: Date;
   @ApiProperty() utmSource?: string;
   @ApiProperty() utmMedium?: string;
   @ApiProperty() utmCampaign?: string;
@@ -21,6 +33,7 @@ export class LeadMagnetLeadResponseDto {
   @ApiProperty() clickedWhatsapp: boolean;
   @ApiProperty() convertedToClient: boolean;
   @ApiProperty() createdAt: Date;
+  @ApiProperty() updatedAt: Date;
 
   static fromEntity(entity: LeadMagnetLead): LeadMagnetLeadResponseDto {
     const dto = new LeadMagnetLeadResponseDto();
@@ -29,7 +42,18 @@ export class LeadMagnetLeadResponseDto {
     dto.email = entity.email;
     dto.whatsapp = entity.whatsapp;
     dto.businessType = entity.businessType;
+    dto.businessName = entity.businessName;
     dto.hasWebsite = entity.hasWebsite;
+    dto.mainProblem = entity.mainProblem;
+    dto.solutionInterest = entity.solutionInterest;
+    dto.budget = entity.budget;
+    dto.urgency = entity.urgency;
+    dto.details = entity.details;
+    dto.diagnosticSessionId = entity.diagnosticSessionId;
+    dto.status = entity.status || LeadStatus.NEW;
+    dto.notes = entity.notes;
+    dto.nextAction = entity.nextAction;
+    dto.followUpDate = entity.followUpDate;
     dto.utmSource = entity.utmSource;
     dto.utmMedium = entity.utmMedium;
     dto.utmCampaign = entity.utmCampaign;
@@ -38,11 +62,12 @@ export class LeadMagnetLeadResponseDto {
     dto.source = entity.source;
     dto.landingPage = entity.landingPage;
     dto.campaign = entity.campaign;
-    dto.downloadedPdf = entity.downloadedPdf;
-    dto.visitedDiagnostic = entity.visitedDiagnostic;
-    dto.clickedWhatsapp = entity.clickedWhatsapp;
-    dto.convertedToClient = entity.convertedToClient;
+    dto.downloadedPdf = Boolean(entity.downloadedPdf);
+    dto.visitedDiagnostic = Boolean(entity.visitedDiagnostic);
+    dto.clickedWhatsapp = Boolean(entity.clickedWhatsapp);
+    dto.convertedToClient = Boolean(entity.convertedToClient);
     dto.createdAt = entity.createdAt;
+    dto.updatedAt = entity.updatedAt;
     return dto;
   }
 }

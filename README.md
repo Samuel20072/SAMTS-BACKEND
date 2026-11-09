@@ -54,14 +54,22 @@ src/
 ## 🚀 Inicio Rápido
 
 ### 1. Variables de Entorno
-Crea un archivo `.env` en la raíz del proyecto con la configuración de tu base de datos:
+Copia el archivo de ejemplo y ajusta los valores:
+```bash
+cp .env.example .env
+```
 ```env
 PORT=3000
-DB_HOST=localhost
-DB_PORT=5432
-DB_USERNAME=postgres
-DB_PASSWORD=postgres
-DB_DATABASE=samts_db
+NODE_ENV=development
+
+# Conexión a PostgreSQL (TypeORM usa esta URL)
+DATABASE_URL=postgresql://postgres:postgres@localhost:5432/samts_db
+
+# true solo si tu proveedor de base de datos exige SSL
+DB_SSL=false
+
+# Clave para firmar los JWT — cambiar en producción
+JWT_SECRET=super-secret-key-change-in-production
 ```
 
 ### 2. Instalación de Dependencias
