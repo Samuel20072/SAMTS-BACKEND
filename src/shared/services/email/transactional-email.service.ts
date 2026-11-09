@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { Resend } from 'resend';
 
 export interface SendEmailOptions {
   to: string;
@@ -23,18 +24,27 @@ export class TransactionalEmailService {
   private readonly logger = new Logger(TransactionalEmailService.name);
   private readonly sentIdempotencyKeys = new Set<string>();
   private readonly deliveryHistory: Map<string, EmailDeliveryResult> = new Map();
+  private resendClient: Resend | null = null;
 
-  constructor(private readonly config: ConfigService) {}
+  constructor(
+    private readonly config: ConfigService,
+    resendClient?: Resend, // Inyección opcional para pruebas y mocking
+  ) {
+    if (resendClient) {
+      this.resendClient = resendClient;
+    }
+  }
 
   /**
-   * Safe email sender.
-   * If EMAIL_PROVIDER is 'mock' or unset in dev/test, simulates delivery without hitting external servers.
+   * Safe email sender with Resend SDK and Mock fallback.
+   * If EMAIL_PROVIDER is 'mock' (default in dev/test), simulates delivery without hitting external servers.
+   * If EMAIL_PROVIDER is 'resend', securely uses the official Resend SDK.
    */
   async sendTransactionalEmail(options: SendEmailOptions): Promise<EmailDeliveryResult> {
     const provider = this.config.get<string>('EMAIL_PROVIDER', 'mock').toLowerCase();
     const idempotencyKey = options.idempotencyKey || `${options.to}:${options.template}`;
 
-    // 1. Prevent duplicate delivery
+    // 1. Prevent duplicate delivery (in-memory idempotency check)
     if (this.sentIdempotencyKeys.has(idempotencyKey)) {
       this.logger.warn(`[EMAIL IDEMPOTENCY] Correo duplicado omitido para clave: ${idempotencyKey}`);
       return (
@@ -51,7 +61,27 @@ export class TransactionalEmailService {
     // 2. Render Template
     const { html, text } = this.renderTemplate(options.template, options.context);
 
-    // 3. Execution with attempt logging and error management
+    // ── Resend Configuration Guard ──────────────────────────────────────────
+    if (provider === 'resend') {
+      const apiKey = this.config.get<string>('RESEND_API_KEY');
+      if (!apiKey && !this.resendClient) {
+        this.logger.error('[RESEND CONFIG ERROR] EMAIL_PROVIDER=resend pero RESEND_API_KEY no está configurada.');
+        const configErrorResult: EmailDeliveryResult = {
+          success: false,
+          attempts: 1,
+          provider: 'resend',
+          error: 'RESEND_API_KEY no configurada',
+          timestamp: new Date(),
+        };
+        return configErrorResult;
+      }
+
+      if (!this.resendClient && apiKey) {
+        this.resendClient = new Resend(apiKey);
+      }
+    }
+
+    // 3. Execution with attempt logging, idempotency and error classification
     let attempts = 0;
     const maxAttempts = 3;
     let lastError: Error | undefined;
@@ -59,8 +89,8 @@ export class TransactionalEmailService {
     while (attempts < maxAttempts) {
       attempts++;
       try {
-        if (provider === 'mock' || process.env.NODE_ENV !== 'production') {
-          // Simulated transactional provider
+        if (provider === 'mock') {
+          // Simulated transactional provider (zero external requests)
           const result: EmailDeliveryResult = {
             success: true,
             messageId: `sim_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`,
@@ -79,8 +109,69 @@ export class TransactionalEmailService {
           return result;
         }
 
-        // Live Provider (Resend / SMTP) placeholder when authorized
-        throw new Error('Proveedor en vivo no configurado. Configure SMTP_* o RESEND_API_KEY.');
+        if (provider === 'resend' && this.resendClient) {
+          const from = this.config.get<string>('EMAIL_FROM', 'SAMTS <contacto@samts.app>');
+
+          const sendPayload: any = {
+            from,
+            to: [options.to],
+            subject: options.subject,
+            html,
+            text,
+          };
+
+          // Native Resend SDK IdempotentRequest option
+          const requestOptions = options.idempotencyKey
+            ? { idempotencyKey: options.idempotencyKey }
+            : undefined;
+
+          const response = await this.resendClient.emails.send(sendPayload, requestOptions);
+
+          if (response.error) {
+            const errorName = response.error.name || 'ResendError';
+            const errorMessage = response.error.message || 'Error desconocido de Resend';
+            const isPermanent =
+              errorName === 'validation_error' ||
+              errorName === 'invalid_api_key' ||
+              errorMessage.includes('API key') ||
+              errorMessage.includes('domain');
+
+            if (isPermanent) {
+              this.logger.error(
+                `[RESEND ERROR PERMANENTE] Intento ${attempts}/${maxAttempts} para ${options.to}: ${errorName} - ${errorMessage}`,
+              );
+              // Do not retry on permanent configuration or validation failures
+              return {
+                success: false,
+                attempts,
+                provider: 'resend',
+                error: `${errorName}: ${errorMessage}`,
+                timestamp: new Date(),
+              };
+            }
+
+            throw new Error(`${errorName}: ${errorMessage}`);
+          }
+
+          const result: EmailDeliveryResult = {
+            success: true,
+            messageId: response.data?.id || `resend_${Date.now()}`,
+            attempts,
+            provider: 'resend',
+            timestamp: new Date(),
+          };
+
+          this.sentIdempotencyKeys.add(idempotencyKey);
+          this.deliveryHistory.set(idempotencyKey, result);
+
+          this.logger.log(
+            `[RESEND ENVIO EXITOSO] Destino: ${options.to} | MessageId: ${result.messageId} | Intentos: ${attempts}`,
+          );
+
+          return result;
+        }
+
+        throw new Error(`Proveedor de correo no reconocido: ${provider}`);
       } catch (err: any) {
         lastError = err;
         this.logger.warn(
@@ -138,6 +229,18 @@ export class TransactionalEmailService {
               <h2 style="color: ${darkColor};">Estás en Lista de Espera Prioritaria</h2>
               <p style="color: #444955;">Hola <strong>${context.name}</strong>,</p>
               <p style="color: #444955;">Los primeros 5 cupos gratuitos han sido completados, pero tu solicitud quedó registrada con prioridad en nuestra lista de espera.</p>
+            </div>
+          `,
+        };
+
+      case 'LEAD_MAGNET_GUIDE':
+        return {
+          text: `Hola ${context.name},\n\nGracias por solicitar tu guía de SAMTS.\n\nPuedes consultar el contenido en cualquier momento.\n\nEquipo SAMTS\nhttps://samts.app`,
+          html: `
+            <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; border: 1px solid #E8E9ED; border-radius: 12px; background: #ffffff;">
+              <h2 style="color: ${darkColor};">Tu Guía de Crecimiento Digital SAMTS</h2>
+              <p style="color: #444955;">Hola <strong>${context.name}</strong>,</p>
+              <p style="color: #444955;">Tu material sobre estrategias digitales y desarrollo web está listo para ser explorado.</p>
             </div>
           `,
         };
