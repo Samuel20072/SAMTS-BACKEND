@@ -11,13 +11,43 @@ async function bootstrap() {
 
   // Enable CORS
   app.enableCors({
-    origin: [
-      'https://samts.app',
-      'https://www.samts.app',
-      'http://localhost:4000',
-      'http://localhost:3001',
+    origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+      // Permitir peticiones sin origen (curl, apps móviles, SSR server-side)
+      if (!origin) return callback(null, true);
+
+      const allowedExact = [
+        'https://samts.app',
+        'https://www.samts.app',
+        'http://localhost:4200',
+        'http://127.0.0.1:4200',
+        'http://localhost:4000',
+        'http://localhost:3000',
+        'http://localhost:3001',
+      ];
+
+      if (
+        allowedExact.includes(origin) ||
+        origin.startsWith('http://localhost:') ||
+        origin.startsWith('http://127.0.0.1:')
+      ) {
+        return callback(null, true);
+      }
+
+      return callback(new Error(`Origin ${origin} not allowed by CORS`));
+    },
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS', 'HEAD'],
+    allowedHeaders: [
+      'Origin',
+      'X-Requested-With',
+      'Content-Type',
+      'Accept',
+      'Authorization',
+      'Cache-Control',
     ],
+    exposedHeaders: ['Content-Length', 'Content-Type'],
     credentials: true,
+    preflightContinue: false,
+    optionsSuccessStatus: 204,
   });
 
   // Set global validation pipes

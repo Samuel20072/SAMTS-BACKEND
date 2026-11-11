@@ -5,12 +5,12 @@ import { BlogStatus } from '../../../../shared/enums/blog-status.enum';
 
 @Entity('blog_posts')
 export class BlogPost extends BaseEntity {
-  @Column()
-  clientId: string;
+  @Column({ type: 'uuid', nullable: true })
+  clientId?: string | null;
 
-  @ManyToOne(() => Client, (client) => client.blogPosts, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Client, (client) => client.blogPosts, { onDelete: 'CASCADE', nullable: true })
   @JoinColumn({ name: 'clientId' })
-  client: Client;
+  client?: Client;
 
   @Column()
   title: string;

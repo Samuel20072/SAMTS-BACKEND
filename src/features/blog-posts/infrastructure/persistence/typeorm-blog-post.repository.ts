@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, IsNull } from 'typeorm';
 import { IBlogPostRepository } from '../../domain/repositories/blog-post.repository.interface';
 import { BlogPost } from '../../domain/entities/blog-post.entity';
 import { BlogStatus } from '../../../../shared/enums/blog-status.enum';
@@ -24,7 +24,9 @@ export class TypeOrmBlogPostRepository implements IBlogPostRepository {
 
   async findBySlug(slug: string, clientId: string | null): Promise<BlogPost | null> {
     const where: any = { slug };
-    if (clientId) {
+    if (clientId === null) {
+      where.clientId = IsNull();
+    } else if (clientId) {
       where.clientId = clientId;
     }
     return this.ormRepository.findOne({
@@ -37,7 +39,9 @@ export class TypeOrmBlogPostRepository implements IBlogPostRepository {
     options: { skip?: number; take?: number; status?: BlogStatus },
   ): Promise<[BlogPost[], number]> {
     const where: any = {};
-    if (clientId) {
+    if (clientId === null) {
+      where.clientId = IsNull(); // Blog de SAMTS
+    } else if (clientId) {
       where.clientId = clientId;
     }
     if (options.status) {

@@ -22,11 +22,20 @@ export class BlogPostsController {
   @Roles(UserRole.SUPER_ADMIN, UserRole.CLIENT_ADMIN, UserRole.EMPLOYEE)
   @ApiOperation({ summary: 'Create a new blog post' })
   @ApiResponse({ status: 201, type: BlogPostResponseDto })
-  async create(@Body() createBlogPostDto: CreateBlogPostDto, @CurrentUser() user: any): Promise<BlogPostResponseDto> {
-    if (!user.clientId && user.role !== UserRole.SUPER_ADMIN) {
-      throw new ForbiddenException('User is not associated with any client');
+  async create(
+    @Body() createBlogPostDto: CreateBlogPostDto,
+    @CurrentUser() user: any,
+    @Query('tenantId') tenantId?: string,
+  ): Promise<BlogPostResponseDto> {
+    let targetClientId: string | null = null;
+    if (user.role === UserRole.SUPER_ADMIN) {
+      targetClientId = tenantId || null; // null = artículo de SAMTS
+    } else {
+      if (!user.clientId) {
+        throw new ForbiddenException('User is not associated with any client');
+      }
+      targetClientId = user.clientId;
     }
-    const targetClientId = user.clientId || 'super-admin-global';
     return this.blogPostsService.create(targetClientId, createBlogPostDto);
   }
 
@@ -46,13 +55,13 @@ export class BlogPostsController {
   ): Promise<{ data: BlogPostResponseDto[]; total: number }> {
     let targetClientId: string | null = null;
 
-    if (user.role !== UserRole.SUPER_ADMIN) {
+    if (user.role === UserRole.SUPER_ADMIN) {
+      targetClientId = tenantId || null; // null = blog de SAMTS
+    } else {
       if (!user.clientId) {
         throw new ForbiddenException('User is not associated with any client');
       }
       targetClientId = user.clientId;
-    } else if (tenantId) {
-      targetClientId = tenantId;
     }
 
     return this.blogPostsService.findAll(targetClientId, {

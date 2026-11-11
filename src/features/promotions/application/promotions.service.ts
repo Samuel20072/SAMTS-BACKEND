@@ -9,7 +9,7 @@ import { Promotion } from '../domain/entities/promotion.entity';
 export class PromotionsService {
   constructor(private readonly promotionRepository: IPromotionRepository) {}
 
-  async create(clientId: string, createPromotionDto: CreatePromotionDto): Promise<PromotionResponseDto> {
+  async create(clientId: string | null, createPromotionDto: CreatePromotionDto): Promise<PromotionResponseDto> {
     const promotion = new Promotion();
     Object.assign(promotion, createPromotionDto);
     promotion.clientId = clientId;

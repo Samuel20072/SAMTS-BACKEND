@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, IsNull } from 'typeorm';
 import { IPromotionRepository } from '../../domain/repositories/promotion.repository.interface';
 import { Promotion } from '../../domain/entities/promotion.entity';
 
@@ -22,11 +22,15 @@ export class TypeOrmPromotionRepository implements IPromotionRepository {
   }
 
   async findAndCount(
-    clientId: string | null,
+    clientId: string | null | undefined,
     options: { skip?: number; take?: number; activeOnly?: boolean },
   ): Promise<[Promotion[], number]> {
     const where: any = {};
-    if (clientId) {
+    if (clientId === null) {
+      // Recursos propios de SAMTS
+      where.clientId = IsNull();
+    } else if (clientId) {
+      // Recursos del tenant específico
       where.clientId = clientId;
     }
     if (options.activeOnly !== undefined) {

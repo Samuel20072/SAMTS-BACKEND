@@ -10,7 +10,7 @@ import { Product } from '../domain/entities/product.entity';
 export class ProductsService {
   constructor(private readonly productRepository: IProductRepository) {}
 
-  async create(clientId: string, createProductDto: CreateProductDto): Promise<ProductResponseDto> {
+  async create(clientId: string | null, createProductDto: CreateProductDto): Promise<ProductResponseDto> {
     const product = new Product();
     Object.assign(product, createProductDto);
     product.clientId = clientId;

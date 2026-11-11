@@ -5,8 +5,8 @@ export class AISettingsResponseDto {
   @ApiProperty()
   id: string;
 
-  @ApiProperty()
-  clientId: string;
+  @ApiProperty({ required: false })
+  clientId?: string | null;
 
   @ApiProperty()
   businessTone: string;

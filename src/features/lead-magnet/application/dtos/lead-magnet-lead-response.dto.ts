@@ -32,6 +32,10 @@ export class LeadMagnetLeadResponseDto {
   @ApiProperty() visitedDiagnostic: boolean;
   @ApiProperty() clickedWhatsapp: boolean;
   @ApiProperty() convertedToClient: boolean;
+  @ApiProperty({ example: 2500000 }) estimatedValue: number;
+  @ApiProperty({ required: false }) assignedTo?: string;
+  @ApiProperty({ required: false }) dealStage?: string;
+  @ApiProperty() activityHistory: any[];
   @ApiProperty() createdAt: Date;
   @ApiProperty() updatedAt: Date;
 
@@ -66,6 +70,10 @@ export class LeadMagnetLeadResponseDto {
     dto.visitedDiagnostic = Boolean(entity.visitedDiagnostic);
     dto.clickedWhatsapp = Boolean(entity.clickedWhatsapp);
     dto.convertedToClient = Boolean(entity.convertedToClient);
+    dto.estimatedValue = Number(entity.estimatedValue || 0);
+    dto.assignedTo = entity.assignedTo;
+    dto.dealStage = entity.dealStage;
+    dto.activityHistory = Array.isArray(entity.activityHistory) ? entity.activityHistory : [];
     dto.createdAt = entity.createdAt;
     dto.updatedAt = entity.updatedAt;
     return dto;

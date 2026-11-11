@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, ILike } from 'typeorm';
+import { Repository, ILike, IsNull } from 'typeorm';
 import { IProductRepository } from '../../domain/repositories/product.repository.interface';
 import { Product } from '../../domain/entities/product.entity';
 
@@ -22,7 +22,7 @@ export class TypeOrmProductRepository implements IProductRepository {
   }
 
   async findAndCount(
-    clientId: string | null,
+    clientId: string | null | undefined,
     options: {
       search?: string;
       category?: string;
@@ -34,8 +34,10 @@ export class TypeOrmProductRepository implements IProductRepository {
   ): Promise<[Product[], number]> {
     const where: any = {};
 
-    if (clientId) {
-      where.clientId = clientId;
+    if (clientId === null) {
+      where.clientId = IsNull(); // Servicios y productos oficiales de SAMTS
+    } else if (clientId) {
+      where.clientId = clientId; // Catálogo del tenant específico
     }
 
     if (options.activeOnly !== undefined) {

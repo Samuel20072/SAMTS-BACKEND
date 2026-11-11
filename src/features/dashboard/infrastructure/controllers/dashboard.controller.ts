@@ -19,14 +19,15 @@ export class DashboardController {
   @ApiResponse({ status: 200, type: DashboardResponseDto })
   @ApiQuery({ name: 'tenantId', required: false, description: 'Super admins can filter by client tenant ID' })
   async getStats(@CurrentUser() user: any, @Query('tenantId') tenantId?: string): Promise<DashboardResponseDto> {
-    let targetClientId = user.clientId;
+    let targetClientId: string | null = null;
 
-    if (user.role === UserRole.SUPER_ADMIN && tenantId) {
-      targetClientId = tenantId;
-    }
-
-    if (!targetClientId) {
-      throw new ForbiddenException('User is not associated with any client');
+    if (user.role === UserRole.SUPER_ADMIN) {
+      targetClientId = tenantId || null; // null = métricas y recursos propios de SAMTS
+    } else {
+      if (!user.clientId) {
+        throw new ForbiddenException('User is not associated with any client');
+      }
+      targetClientId = user.clientId;
     }
 
     return this.dashboardService.getStats(targetClientId);

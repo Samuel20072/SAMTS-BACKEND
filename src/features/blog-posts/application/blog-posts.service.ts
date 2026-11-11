@@ -23,7 +23,7 @@ export class BlogPostsService {
       .replace(/-+$/, '');
   }
 
-  async create(clientId: string, createBlogPostDto: CreateBlogPostDto): Promise<BlogPostResponseDto> {
+  async create(clientId: string | null, createBlogPostDto: CreateBlogPostDto): Promise<BlogPostResponseDto> {
     const blogPost = new BlogPost();
     Object.assign(blogPost, createBlogPostDto);
     blogPost.clientId = clientId;

@@ -21,11 +21,20 @@ export class PromotionsController {
   @Roles(UserRole.SUPER_ADMIN, UserRole.CLIENT_ADMIN, UserRole.EMPLOYEE)
   @ApiOperation({ summary: 'Create a new promotion' })
   @ApiResponse({ status: 201, type: PromotionResponseDto })
-  async create(@Body() createPromotionDto: CreatePromotionDto, @CurrentUser() user: any): Promise<PromotionResponseDto> {
-    if (!user.clientId && user.role !== UserRole.SUPER_ADMIN) {
-      throw new ForbiddenException('User is not associated with any client');
+  async create(
+    @Body() createPromotionDto: CreatePromotionDto,
+    @CurrentUser() user: any,
+    @Query('tenantId') tenantId?: string,
+  ): Promise<PromotionResponseDto> {
+    let targetClientId: string | null = null;
+    if (user.role === UserRole.SUPER_ADMIN) {
+      targetClientId = tenantId || null; // Si no pasa tenantId, es promoción global de SAMTS
+    } else {
+      if (!user.clientId) {
+        throw new ForbiddenException('User is not associated with any client');
+      }
+      targetClientId = user.clientId;
     }
-    const targetClientId = user.clientId || 'super-admin-global';
     return this.promotionsService.create(targetClientId, createPromotionDto);
   }
 
@@ -45,13 +54,13 @@ export class PromotionsController {
   ): Promise<{ data: PromotionResponseDto[]; total: number }> {
     let targetClientId: string | null = null;
 
-    if (user.role !== UserRole.SUPER_ADMIN) {
+    if (user.role === UserRole.SUPER_ADMIN) {
+      targetClientId = tenantId || null; // null = promociones oficiales de SAMTS
+    } else {
       if (!user.clientId) {
         throw new ForbiddenException('User is not associated with any client');
       }
       targetClientId = user.clientId;
-    } else if (tenantId) {
-      targetClientId = tenantId;
     }
 
     const isActiveFilter = activeOnly !== undefined ? activeOnly === 'true' : undefined;

@@ -4,12 +4,12 @@ import { Client } from '../../../clients/domain/entities/client.entity';
 
 @Entity('ai_settings')
 export class AISettings extends BaseEntity {
-  @Column()
-  clientId: string;
+  @Column({ type: 'uuid', nullable: true })
+  clientId?: string | null;
 
-  @OneToOne(() => Client, (client) => client.aiSettings, { onDelete: 'CASCADE' })
+  @OneToOne(() => Client, (client) => client.aiSettings, { onDelete: 'CASCADE', nullable: true })
   @JoinColumn({ name: 'clientId' })
-  client: Client;
+  client?: Client;
 
   @Column({ default: 'Professional' })
   businessTone: string;

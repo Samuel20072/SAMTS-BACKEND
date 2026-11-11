@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, IsNull } from 'typeorm';
 import { IAISettingsRepository } from '../../domain/repositories/ai-settings.repository.interface';
 import { AISettings } from '../../domain/entities/ai-settings.entity';
 
@@ -15,9 +15,8 @@ export class TypeOrmAISettingsRepository implements IAISettingsRepository {
     return this.ormRepository.save(aiSettings);
   }
 
-  async findByClientId(clientId: string): Promise<AISettings | null> {
-    return this.ormRepository.findOne({
-      where: { clientId },
-    });
+  async findByClientId(clientId: string | null): Promise<AISettings | null> {
+    const where: any = clientId === null ? { clientId: IsNull() } : { clientId };
+    return this.ormRepository.findOne({ where });
   }
 }

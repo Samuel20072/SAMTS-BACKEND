@@ -116,11 +116,25 @@ export class LeadMagnetService {
       lead.followUpDate = dto.followUpDate ? new Date(dto.followUpDate) : undefined;
     }
     if (dto.convertedToClient !== undefined) lead.convertedToClient = dto.convertedToClient;
+    if (dto.estimatedValue !== undefined) lead.estimatedValue = dto.estimatedValue;
+    if (dto.assignedTo !== undefined) lead.assignedTo = dto.assignedTo;
+    if (dto.dealStage !== undefined) lead.dealStage = dto.dealStage;
+
+    if (dto.activityEntry) {
+      const history = Array.isArray(lead.activityHistory) ? lead.activityHistory : [];
+      history.unshift({
+        date: new Date().toISOString(),
+        type: dto.activityEntry.type || 'NOTE',
+        description: dto.activityEntry.description,
+        author: dto.activityEntry.author || 'Admin SAMTS',
+      });
+      lead.activityHistory = history;
+    }
 
     const saved = await this.repository.save(lead);
     
     this.logger.log(
-      `[LEAD STATUS ACTUALIZADO] ID: ${saved.id} | Nuevo Estado: ${saved.status} | Notas: ${saved.notes || 'Sin notas'}`
+      `[LEAD STATUS ACTUALIZADO] ID: ${saved.id} | Nuevo Estado: ${saved.status} | Valor: $${saved.estimatedValue || 0} | Notas: ${saved.notes || 'Sin notas'}`
     );
 
     return LeadMagnetLeadResponseDto.fromEntity(saved);

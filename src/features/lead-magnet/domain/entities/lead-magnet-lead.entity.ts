@@ -94,4 +94,21 @@ export class LeadMagnetLead extends BaseEntity {
 
   @Column({ default: false })
   convertedToClient: boolean;
+
+  @Column({ type: 'decimal', precision: 12, scale: 2, default: 0 })
+  estimatedValue: number;
+
+  @Column({ nullable: true })
+  assignedTo?: string;
+
+  @Column({ nullable: true })
+  dealStage?: string;
+
+  @Column({ type: 'jsonb', default: () => "'[]'" })
+  activityHistory: Array<{
+    date: string;
+    type: string;
+    description: string;
+    author?: string;
+  }>;
 }

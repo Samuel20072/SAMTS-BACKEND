@@ -21,14 +21,15 @@ export class AISettingsController {
   @ApiResponse({ status: 200, type: AISettingsResponseDto })
   @ApiQuery({ name: 'tenantId', required: false, description: 'Super admins can view any client settings' })
   async find(@CurrentUser() user: any, @Query('tenantId') tenantId?: string): Promise<AISettingsResponseDto> {
-    let targetClientId = user.clientId;
+    let targetClientId: string | null = null;
 
-    if (user.role === UserRole.SUPER_ADMIN && tenantId) {
-      targetClientId = tenantId;
-    }
-
-    if (!targetClientId) {
-      throw new ForbiddenException('User is not associated with any client');
+    if (user.role === UserRole.SUPER_ADMIN) {
+      targetClientId = tenantId || null; // null = configuración global de SAMTS
+    } else {
+      if (!user.clientId) {
+        throw new ForbiddenException('User is not associated with any client');
+      }
+      targetClientId = user.clientId;
     }
 
     return this.aiSettingsService.findByClientId(targetClientId);
@@ -44,14 +45,15 @@ export class AISettingsController {
     @CurrentUser() user: any,
     @Query('tenantId') tenantId?: string,
   ): Promise<AISettingsResponseDto> {
-    let targetClientId = user.clientId;
+    let targetClientId: string | null = null;
 
-    if (user.role === UserRole.SUPER_ADMIN && tenantId) {
-      targetClientId = tenantId;
-    }
-
-    if (!targetClientId) {
-      throw new ForbiddenException('User is not associated with any client');
+    if (user.role === UserRole.SUPER_ADMIN) {
+      targetClientId = tenantId || null; // null = configuración global de SAMTS
+    } else {
+      if (!user.clientId) {
+        throw new ForbiddenException('User is not associated with any client');
+      }
+      targetClientId = user.clientId;
     }
 
     return this.aiSettingsService.update(targetClientId, updateDto);

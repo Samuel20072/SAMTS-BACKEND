@@ -5,8 +5,8 @@ export class PromotionResponseDto {
   @ApiProperty()
   id: string;
 
-  @ApiProperty()
-  clientId: string;
+  @ApiProperty({ required: false })
+  clientId?: string | null;
 
   @ApiProperty()
   title: string;
@@ -23,6 +23,12 @@ export class PromotionResponseDto {
   @ApiProperty()
   endDate: Date;
 
+  @ApiProperty({ required: false })
+  code?: string;
+
+  @ApiProperty({ required: false })
+  discountPercent?: number;
+
   @ApiProperty()
   isActive: boolean;
 
@@ -36,6 +42,8 @@ export class PromotionResponseDto {
     dto.title = promo.title;
     dto.description = promo.description;
     dto.bannerImage = promo.bannerImage;
+    dto.code = promo.code;
+    dto.discountPercent = promo.discountPercent;
     dto.startDate = promo.startDate;
     dto.endDate = promo.endDate;
     dto.isActive = promo.isActive;

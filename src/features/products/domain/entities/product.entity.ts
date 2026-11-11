@@ -4,12 +4,12 @@ import { Client } from '../../../clients/domain/entities/client.entity';
 
 @Entity('products')
 export class Product extends BaseEntity {
-  @Column()
-  clientId: string;
+  @Column({ type: 'uuid', nullable: true })
+  clientId?: string | null;
 
-  @ManyToOne(() => Client, (client) => client.products, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Client, (client) => client.products, { onDelete: 'CASCADE', nullable: true })
   @JoinColumn({ name: 'clientId' })
-  client: Client;
+  client?: Client;
 
   @Column()
   name: string;

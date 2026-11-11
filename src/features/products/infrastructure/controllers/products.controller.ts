@@ -22,12 +22,20 @@ export class ProductsController {
   @Roles(UserRole.SUPER_ADMIN, UserRole.CLIENT_ADMIN, UserRole.EMPLOYEE)
   @ApiOperation({ summary: 'Create a new product for current tenant' })
   @ApiResponse({ status: 201, type: ProductResponseDto })
-  async create(@Body() createProductDto: CreateProductDto, @CurrentUser() user: any): Promise<ProductResponseDto> {
-    if (!user.clientId && user.role !== UserRole.SUPER_ADMIN) {
-      throw new ForbiddenException('User is not associated with any client');
+  async create(
+    @Body() createProductDto: CreateProductDto,
+    @CurrentUser() user: any,
+    @Query('tenantId') tenantId?: string,
+  ): Promise<ProductResponseDto> {
+    let targetClientId: string | null = null;
+    if (user.role === UserRole.SUPER_ADMIN) {
+      targetClientId = tenantId || null; // Si es null, es un servicio comercial de SAMTS
+    } else {
+      if (!user.clientId) {
+        throw new ForbiddenException('User is not associated with any client');
+      }
+      targetClientId = user.clientId;
     }
-    // Super admins must specify a clientId in request body if not associated, but for simplicity let's assume they have a client context or we can accept clientId.
-    const targetClientId = user.clientId || 'super-admin-global';
     return this.productsService.create(targetClientId, createProductDto);
   }
 
@@ -42,13 +50,13 @@ export class ProductsController {
   ): Promise<{ data: ProductResponseDto[]; total: number }> {
     let targetClientId: string | null = null;
 
-    if (user.role !== UserRole.SUPER_ADMIN) {
+    if (user.role === UserRole.SUPER_ADMIN) {
+      targetClientId = tenantId || null; // null = servicios oficiales de SAMTS
+    } else {
       if (!user.clientId) {
         throw new ForbiddenException('User is not associated with any client');
       }
       targetClientId = user.clientId;
-    } else if (tenantId) {
-      targetClientId = tenantId;
     }
 
     return this.productsService.findAll(targetClientId, query);
