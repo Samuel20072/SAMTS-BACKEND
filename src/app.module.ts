@@ -1,8 +1,10 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { resolveSynchronize, validateTypeOrmConfig } from './shared/config/database.config';
+import { HealthModule } from './features/health/health.module';
 import { AuthModule } from './features/auth/auth.module';
 import { UsersModule } from './features/users/users.module';
 import { ClientsModule } from './features/clients/clients.module';
@@ -22,16 +24,28 @@ import { LeadMagnetModule } from './features/lead-magnet/lead-magnet.module';
     ConfigModule.forRoot({
       isGlobal: true,
     }),
-    TypeOrmModule.forRoot({
-      type: 'postgres',
-      url: process.env.DATABASE_URL,
-      autoLoadEntities: true,
-      synchronize: process.env.NODE_ENV !== 'production',
-      ssl:
-        process.env.DB_SSL === 'true'
-          ? { rejectUnauthorized: false }
-          : false,
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => {
+        // Valida la configuración antes de inicializar TypeORM (Fase 3.3).
+        validateTypeOrmConfig(process.env);
+
+        return {
+          type: 'postgres' as const,
+          url: configService.get<string>('DATABASE_URL'),
+          autoLoadEntities: true,
+          // Fail-safe: synchronize solo se activa en development/test.
+          // En producción se exige el uso de migraciones versionadas.
+          synchronize: resolveSynchronize(process.env),
+          ssl:
+            configService.get<string>('DB_SSL') === 'true'
+              ? { rejectUnauthorized: false }
+              : false,
+        };
+      },
     }),
+    HealthModule,
     AuthModule,
     UsersModule,
     ClientsModule,
