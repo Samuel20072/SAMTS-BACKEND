@@ -18,6 +18,9 @@ export class BlogPost extends BaseEntity {
   @Column()
   slug: string;
 
+  @Column({ type: 'text', nullable: true })
+  excerpt?: string | null;
+
   @Column({ type: 'text' })
   content: string;
 

@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsDateString, IsInt, IsNotEmpty, IsOptional, IsString, Max, Min } from 'class-validator';
+import { IsBoolean, IsDateString, IsInt, IsNotEmpty, IsOptional, IsString, Max, Min } from 'class-validator';
 
 export class CreatePromotionDto {
   @ApiProperty({ example: 'Descuento Especial Desarrollo Web' })
@@ -36,4 +36,9 @@ export class CreatePromotionDto {
   @ApiProperty({ example: '2026-06-30T23:59:59.000Z' })
   @IsDateString()
   endDate: string;
+
+  @ApiProperty({ example: true, default: true, required: false })
+  @IsBoolean()
+  @IsOptional()
+  isActive?: boolean;
 }

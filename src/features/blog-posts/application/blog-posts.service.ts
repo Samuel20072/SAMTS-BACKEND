@@ -27,7 +27,9 @@ export class BlogPostsService {
     const blogPost = new BlogPost();
     Object.assign(blogPost, createBlogPostDto);
     blogPost.clientId = clientId;
-    blogPost.slug = this.slugify(createBlogPostDto.title);
+    blogPost.slug = createBlogPostDto.slug
+      ? this.slugify(createBlogPostDto.slug)
+      : this.slugify(createBlogPostDto.title);
     blogPost.status = createBlogPostDto.status || BlogStatus.DRAFT;
 
     const saved = await this.blogPostRepository.save(blogPost);
@@ -44,7 +46,9 @@ export class BlogPostsService {
     }
 
     Object.assign(blogPost, updateBlogPostDto);
-    if (updateBlogPostDto.title) {
+    if (updateBlogPostDto.slug) {
+      blogPost.slug = this.slugify(updateBlogPostDto.slug);
+    } else if (updateBlogPostDto.title) {
       blogPost.slug = this.slugify(updateBlogPostDto.title);
     }
 

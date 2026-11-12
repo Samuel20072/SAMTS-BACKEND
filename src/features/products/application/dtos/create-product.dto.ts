@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsNumber, IsOptional, IsString, IsArray, IsIn, Min } from 'class-validator';
+import { IsBoolean, IsNotEmpty, IsNumber, IsOptional, IsString, IsArray, IsIn, Min } from 'class-validator';
 
 export class CreateProductDto {
   @ApiProperty({ example: 'Página Web Básica' })
@@ -46,4 +46,9 @@ export class CreateProductDto {
   @ApiProperty({ example: false, required: false })
   @IsOptional()
   featured?: boolean;
+
+  @ApiProperty({ example: true, default: true, required: false })
+  @IsBoolean()
+  @IsOptional()
+  isActive?: boolean;
 }

@@ -15,7 +15,7 @@ export class PromotionsService {
     promotion.clientId = clientId;
     promotion.startDate = new Date(createPromotionDto.startDate);
     promotion.endDate = new Date(createPromotionDto.endDate);
-    promotion.isActive = true;
+    promotion.isActive = createPromotionDto.isActive ?? true;
 
     const saved = await this.promotionRepository.save(promotion);
     return PromotionResponseDto.fromEntity(saved);

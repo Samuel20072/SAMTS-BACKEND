@@ -15,6 +15,9 @@ export class BlogPostResponseDto {
   @ApiProperty()
   slug: string;
 
+  @ApiProperty({ required: false, nullable: true })
+  excerpt?: string | null;
+
   @ApiProperty()
   content: string;
 
@@ -36,6 +39,7 @@ export class BlogPostResponseDto {
     dto.clientId = blog.clientId;
     dto.title = blog.title;
     dto.slug = blog.slug;
+    dto.excerpt = blog.excerpt;
     dto.content = blog.content;
     dto.featuredImage = blog.featuredImage;
     dto.status = blog.status;

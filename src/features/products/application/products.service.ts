@@ -14,7 +14,7 @@ export class ProductsService {
     const product = new Product();
     Object.assign(product, createProductDto);
     product.clientId = clientId;
-    product.isActive = true;
+    product.isActive = createProductDto.isActive ?? true;
     const saved = await this.productRepository.save(product);
     return ProductResponseDto.fromEntity(saved);
   }
