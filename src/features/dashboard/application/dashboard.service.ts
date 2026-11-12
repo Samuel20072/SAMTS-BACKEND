@@ -27,9 +27,11 @@ export class DashboardService {
     const promoRepo = this.dataSource.getRepository(Promotion);
 
     // ─── 1. MÉTRICAS COMERCIALES Y CRM REALES DE SAMTS ──────────────────────
-    const allLeads = await leadRepo.find({
-      order: { createdAt: 'DESC' },
-    });
+    // Los leads comerciales pertenecen exclusivamente al centro de operaciones SAMTS (clientId === null).
+    // Si un tenant consulta su dashboard, no tiene acceso a los prospectos corporativos de SAMTS.
+    const allLeads = clientId === null
+      ? await leadRepo.find({ order: { createdAt: 'DESC' } })
+      : [];
 
     const totalLeads = allLeads.length;
     let newLeads = 0;

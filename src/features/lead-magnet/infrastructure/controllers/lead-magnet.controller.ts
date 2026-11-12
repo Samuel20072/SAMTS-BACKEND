@@ -93,7 +93,7 @@ export class LeadMagnetController {
    */
   @Get('leads')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.SUPER_ADMIN, UserRole.CLIENT_ADMIN)
+  @Roles(UserRole.SUPER_ADMIN)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get all leads (Admin only)' })
   @ApiResponse({ status: 200, type: [LeadMagnetLeadResponseDto] })
@@ -106,7 +106,7 @@ export class LeadMagnetController {
    */
   @Get('leads/:id')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.SUPER_ADMIN, UserRole.CLIENT_ADMIN)
+  @Roles(UserRole.SUPER_ADMIN)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get lead by ID (Admin only)' })
   @ApiResponse({ status: 200, type: LeadMagnetLeadResponseDto })
@@ -119,7 +119,7 @@ export class LeadMagnetController {
    */
   @Patch('leads/:id/status')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.SUPER_ADMIN, UserRole.CLIENT_ADMIN)
+  @Roles(UserRole.SUPER_ADMIN)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Update lead status, notes and next action (Admin only)' })
   @ApiResponse({ status: 200, type: LeadMagnetLeadResponseDto })
@@ -135,7 +135,7 @@ export class LeadMagnetController {
    */
   @Patch('leads/:id/converted')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.SUPER_ADMIN, UserRole.CLIENT_ADMIN)
+  @Roles(UserRole.SUPER_ADMIN)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Mark lead as converted to client (Admin only)' })
   async markConverted(@Param('id') id: string): Promise<void> {

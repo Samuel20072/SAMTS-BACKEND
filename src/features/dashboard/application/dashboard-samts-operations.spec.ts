@@ -76,9 +76,36 @@ describe('DashboardService — Centro de Operaciones Comerciales SAMTS', () => {
             }),
           };
         }
+        if (name === 'SaleDetail') {
+          return {
+            createQueryBuilder: jest.fn().mockReturnValue({
+              innerJoin: jest.fn().mockReturnThis(),
+              select: jest.fn().mockReturnThis(),
+              addSelect: jest.fn().mockReturnThis(),
+              where: jest.fn().mockReturnThis(),
+              groupBy: jest.fn().mockReturnThis(),
+              addGroupBy: jest.fn().mockReturnThis(),
+              orderBy: jest.fn().mockReturnThis(),
+              limit: jest.fn().mockReturnThis(),
+              getRawMany: jest.fn().mockResolvedValue([]),
+            }),
+          };
+        }
         return {
           count: jest.fn().mockResolvedValue(0),
           find: jest.fn().mockResolvedValue([]),
+          createQueryBuilder: jest.fn().mockReturnValue({
+            innerJoin: jest.fn().mockReturnThis(),
+            select: jest.fn().mockReturnThis(),
+            addSelect: jest.fn().mockReturnThis(),
+            where: jest.fn().mockReturnThis(),
+            groupBy: jest.fn().mockReturnThis(),
+            addGroupBy: jest.fn().mockReturnThis(),
+            orderBy: jest.fn().mockReturnThis(),
+            limit: jest.fn().mockReturnThis(),
+            getRawOne: jest.fn().mockResolvedValue({ sum: 0 }),
+            getRawMany: jest.fn().mockResolvedValue([]),
+          }),
         };
       }),
     };
@@ -117,5 +144,17 @@ describe('DashboardService — Centro de Operaciones Comerciales SAMTS', () => {
     expect(stats.recentLeads.length).toBe(4);
     expect(stats.recentLeads[0].name).toBe('Carlos Mendoza');
     expect(stats.recentLeads[0].estimatedValue).toBe(2500000);
+  });
+
+  it('debe aislar estrictamente los leads cuando un tenant consulta su propio dashboard', async () => {
+    const tenantStats = await service.getStats('tenant-uuid-1234');
+
+    // Un tenant NO debe ver los leads comerciales de SAMTS
+    expect(tenantStats.totalLeads).toBe(0);
+    expect(tenantStats.newLeads).toBe(0);
+    expect(tenantStats.openOpportunities).toBe(0);
+    expect(tenantStats.estimatedPipelineValue).toBe(0);
+    expect(tenantStats.recentLeads).toEqual([]);
+    expect(tenantStats.leadsByStatus).toEqual({});
   });
 });
