@@ -1,12 +1,19 @@
-import { Controller, Get, Post, Body, Param, ParseUUIDPipe, HttpStatus } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
+import { Controller, Get, Post, Body, Param, ParseUUIDPipe, HttpStatus, UseGuards } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiBearerAuth } from '@nestjs/swagger';
 import { CreateUserUseCase } from '../../application/use-cases/create-user.use-case';
 import { FindUserByIdUseCase } from '../../application/use-cases/find-user-by-id.use-case';
 import { FindAllUsersUseCase } from '../../application/use-cases/find-all-users.use-case';
 import { CreateUserDto } from '../../application/dtos/create-user.dto';
 import { UserResponseDto } from '../../application/dtos/user-response.dto';
+import { JwtAuthGuard } from '../../../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../../../auth/guards/roles.guard';
+import { Roles } from '../../../auth/decorators/roles.decorator';
+import { UserRole } from '../../../../shared/enums/user-role.enum';
 
 @ApiTags('users')
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles(UserRole.SUPER_ADMIN)
 @Controller('users')
 export class UsersController {
   constructor(
