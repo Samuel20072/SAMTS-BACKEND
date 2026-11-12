@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Put, Body, Param, Query, UseGuards, ForbiddenException, ParseIntPipe } from '@nestjs/common';
+import { Controller, Get, Post, Put, Body, Param, Query, UseGuards, ForbiddenException, BadRequestException, ParseIntPipe } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { SalesService } from '../../application/sales.service';
 import { CreateSaleDto } from '../../application/dtos/create-sale.dto';
@@ -22,11 +22,38 @@ export class SalesController {
   @ApiOperation({ summary: 'Create a new sale' })
   @ApiResponse({ status: 201, type: SaleResponseDto })
   async create(@Body() createSaleDto: CreateSaleDto, @CurrentUser() user: any): Promise<SaleResponseDto> {
-    if (!user.clientId && user.role !== UserRole.SUPER_ADMIN) {
+    const targetClientId = this.resolveTargetClientId(user, createSaleDto.clientId);
+    return this.salesService.create(targetClientId, createSaleDto);
+  }
+
+  /**
+   * Resuelve el tenant destino de una operación de venta.
+   *
+   * Las ventas SIEMPRE pertenecen a un cliente real (sales.clientId es NOT NULL con FK a clients).
+   * - SUPER_ADMIN: debe indicar explícitamente un clientId real; no existe una venta "global".
+   * - CLIENT_ADMIN / EMPLOYEE: se fuerza el clientId del token; no pueden operar sobre otro tenant.
+   *
+   * Nunca se generan identificadores ficticios.
+   */
+  private resolveTargetClientId(user: any, requestedClientId?: string): string {
+    if (user.role === UserRole.SUPER_ADMIN) {
+      if (!requestedClientId) {
+        throw new BadRequestException(
+          'SUPER_ADMIN debe indicar el clientId del tenant al que pertenece la venta',
+        );
+      }
+      return requestedClientId;
+    }
+
+    if (!user.clientId) {
       throw new ForbiddenException('User is not associated with any client');
     }
-    const targetClientId = user.clientId || 'super-admin-global';
-    return this.salesService.create(targetClientId, createSaleDto);
+
+    if (requestedClientId && requestedClientId !== user.clientId) {
+      throw new ForbiddenException('You cannot create sales for another tenant');
+    }
+
+    return user.clientId;
   }
 
   @Get()

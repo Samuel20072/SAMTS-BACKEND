@@ -6,6 +6,7 @@ import { SaleResponseDto } from './dtos/sale-response.dto';
 import { Sale } from '../domain/entities/sale.entity';
 import { SaleDetail } from '../domain/entities/sale-detail.entity';
 import { Product } from '../../products/domain/entities/product.entity';
+import { Client } from '../../clients/domain/entities/client.entity';
 import { Notification } from '../../notifications/domain/entities/notification.entity';
 import { NotificationType } from '../../../shared/enums/notification-type.enum';
 import { SaleStatus } from '../../../shared/enums/sale-status.enum';
@@ -23,10 +24,18 @@ export class SalesService {
     await queryRunner.startTransaction();
 
     try {
+      const clientRepo = queryRunner.manager.getRepository(Client);
       const productRepo = queryRunner.manager.getRepository(Product);
       const saleRepo = queryRunner.manager.getRepository(Sale);
       const saleDetailRepo = queryRunner.manager.getRepository(SaleDetail);
       const notificationRepo = queryRunner.manager.getRepository(Notification);
+
+      // 0. La venta siempre debe pertenecer a un cliente real (sales.clientId es NOT NULL con FK a clients).
+      //    Se valida contra la base de datos para impedir identificadores ficticios o de otro tenant.
+      const client = await clientRepo.findOne({ where: { id: clientId } });
+      if (!client) {
+        throw new BadRequestException(`Client with ID ${clientId} not found`);
+      }
 
       let grandTotal = 0;
       const saleDetails: SaleDetail[] = [];

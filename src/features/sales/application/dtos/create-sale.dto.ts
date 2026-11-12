@@ -1,5 +1,5 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsArray, IsEmail, IsNotEmpty, IsNumber, IsString, Min, ValidateNested } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsArray, IsEmail, IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID, Min, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class CreateSaleDetailDto {
@@ -15,6 +15,16 @@ export class CreateSaleDetailDto {
 }
 
 export class CreateSaleDto {
+  @ApiPropertyOptional({
+    example: 'f1e2d3c4-b5a6-4978-8a9b-0c1d2e3f4a5b',
+    description:
+      'Cliente (tenant) al que pertenece la venta. Obligatorio únicamente para SUPER_ADMIN; ' +
+      'para usuarios de tenant se ignora y se usa el clientId del token.',
+  })
+  @IsOptional()
+  @IsUUID()
+  clientId?: string;
+
   @ApiProperty({ example: 'Carlos Mendoza' })
   @IsString()
   @IsNotEmpty()
