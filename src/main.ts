@@ -60,18 +60,30 @@ async function bootstrap() {
   );
 
   // Swagger setup
-  const config = new DocumentBuilder()
-    .setTitle('SAMTS API')
-    .setDescription('The SAMTS Ecosistema Backend API documentation')
-    .setVersion('1.0')
-    .addBearerAuth()
-    .build();
-  const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('docs', app, document);
+  // Fase 3.3: la documentación queda expuesta en desarrollo y en entornos no
+  // productivos. En producción solo se habilita explícitamente con
+  // ENABLE_SWAGGER=true (y se recomienda restringirlo a nivel de red/gateway).
+  const isProduction = process.env.NODE_ENV === 'production';
+  const swaggerEnabled = !isProduction || process.env.ENABLE_SWAGGER === 'true';
+
+  if (swaggerEnabled) {
+    const config = new DocumentBuilder()
+      .setTitle('SAMTS API')
+      .setDescription('The SAMTS Ecosistema Backend API documentation')
+      .setVersion('1.0')
+      .addBearerAuth()
+      .build();
+    const document = SwaggerModule.createDocument(app, config);
+    SwaggerModule.setup('docs', app, document);
+  }
 
   const port = process.env.PORT ?? 3000;
   await app.listen(port);
   console.log(`Application is running on: http://localhost:${port}/api`);
-  console.log(`Swagger documentation is available at: http://localhost:${port}/docs`);
+  if (swaggerEnabled) {
+    console.log(`Swagger documentation is available at: http://localhost:${port}/docs`);
+  } else {
+    console.log('Swagger documentation is disabled in this environment.');
+  }
 }
 bootstrap();
