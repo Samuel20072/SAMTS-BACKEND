@@ -111,4 +111,26 @@ export class LeadMagnetLead extends BaseEntity {
     description: string;
     author?: string;
   }>;
+
+  // ─── Invitación de lanzamiento hacia SAMTS Catalog (estado local, nullable) ───
+  @Column({ length: 64, nullable: true })
+  invitationId?: string;
+
+  @Column({ length: 50, nullable: true })
+  invitationStatus?: string;
+
+  @Column({ type: 'timestamp', nullable: true })
+  invitationIssuedAt?: Date;
+
+  @Column({ type: 'timestamp', nullable: true })
+  invitationSentAt?: Date;
+
+  @Column({ type: 'timestamp', nullable: true })
+  invitationActivatedAt?: Date;
+
+  @Column({ type: 'timestamp', nullable: true })
+  invitationExpiresAt?: Date;
+
+  @Column({ type: 'text', nullable: true })
+  invitationLastError?: string;
 }

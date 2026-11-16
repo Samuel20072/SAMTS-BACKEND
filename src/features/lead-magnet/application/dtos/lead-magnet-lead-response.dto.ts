@@ -36,6 +36,13 @@ export class LeadMagnetLeadResponseDto {
   @ApiProperty({ required: false }) assignedTo?: string;
   @ApiProperty({ required: false }) dealStage?: string;
   @ApiProperty() activityHistory: any[];
+  @ApiProperty({ required: false }) invitationId?: string;
+  @ApiProperty({ required: false }) invitationStatus?: string;
+  @ApiProperty({ required: false }) invitationIssuedAt?: Date;
+  @ApiProperty({ required: false }) invitationSentAt?: Date;
+  @ApiProperty({ required: false }) invitationActivatedAt?: Date;
+  @ApiProperty({ required: false }) invitationExpiresAt?: Date;
+  @ApiProperty({ required: false }) invitationLastError?: string;
   @ApiProperty() createdAt: Date;
   @ApiProperty() updatedAt: Date;
 
@@ -74,6 +81,13 @@ export class LeadMagnetLeadResponseDto {
     dto.assignedTo = entity.assignedTo;
     dto.dealStage = entity.dealStage;
     dto.activityHistory = Array.isArray(entity.activityHistory) ? entity.activityHistory : [];
+    dto.invitationId = entity.invitationId;
+    dto.invitationStatus = entity.invitationStatus;
+    dto.invitationIssuedAt = entity.invitationIssuedAt;
+    dto.invitationSentAt = entity.invitationSentAt;
+    dto.invitationActivatedAt = entity.invitationActivatedAt;
+    dto.invitationExpiresAt = entity.invitationExpiresAt;
+    dto.invitationLastError = entity.invitationLastError;
     dto.createdAt = entity.createdAt;
     dto.updatedAt = entity.updatedAt;
     return dto;

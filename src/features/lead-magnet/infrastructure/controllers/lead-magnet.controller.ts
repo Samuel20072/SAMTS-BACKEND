@@ -10,20 +10,27 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiHeader } from '@nestjs/swagger';
 import { LeadMagnetService } from '../../application/lead-magnet.service';
+import { LeadInvitationsService } from '../../application/lead-invitations.service';
 import { CreateLeadMagnetLeadDto } from '../../application/dtos/create-lead-magnet-lead.dto';
 import { LeadMagnetLeadResponseDto } from '../../application/dtos/lead-magnet-lead-response.dto';
 import { UpdateLeadStatusDto } from '../../application/dtos/update-lead-status.dto';
+import { LeadInvitationResponseDto } from '../../application/dtos/lead-invitation-response.dto';
+import { ActivationCallbackDto } from '../../application/dtos/activation-callback.dto';
 import { JwtAuthGuard } from '../../../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../../auth/guards/roles.guard';
 import { Roles } from '../../../auth/decorators/roles.decorator';
+import { ServiceKeyGuard } from '../guards/service-key.guard';
 import { UserRole } from '../../../../shared/enums/user-role.enum';
 
 @ApiTags('lead-magnet')
 @Controller('lead-magnet')
 export class LeadMagnetController {
-  constructor(private readonly service: LeadMagnetService) {}
+  constructor(
+    private readonly service: LeadMagnetService,
+    private readonly invitationsService: LeadInvitationsService,
+  ) {}
 
   /**
    * PUBLIC endpoint — no auth required.
@@ -140,6 +147,65 @@ export class LeadMagnetController {
   @ApiOperation({ summary: 'Mark lead as converted to client (Admin only)' })
   async markConverted(@Param('id') id: string): Promise<void> {
     return this.service.markConverted(id);
+  }
+
+  /**
+   * ADMIN ONLY — Issue (or reuse) the launch invitation for a SELECTED lead.
+   * Rejects any status other than SELECTED (including WAITLIST).
+   */
+  @Post('leads/:id/invitation')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.SUPER_ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Issue the launch invitation for a SELECTED lead (Admin only)' })
+  @ApiResponse({ status: 200, type: LeadInvitationResponseDto })
+  async issueInvitation(@Param('id') id: string): Promise<LeadInvitationResponseDto> {
+    return this.invitationsService.issueInvitationForLead(id);
+  }
+
+  /**
+   * ADMIN ONLY — Resend the existing invitation (idempotent, no new invitation created).
+   */
+  @Post('leads/:id/invitation/resend')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.SUPER_ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Resend the existing invitation for a lead (Admin only)' })
+  @ApiResponse({ status: 200, type: LeadInvitationResponseDto })
+  async resendInvitation(@Param('id') id: string): Promise<LeadInvitationResponseDto> {
+    return this.invitationsService.resendInvitationForLead(id);
+  }
+
+  /**
+   * ADMIN ONLY — Get invitation status (local + lazy S2S sync with the Catalog).
+   */
+  @Get('leads/:id/invitation')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.SUPER_ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get invitation status for a lead with lazy sync (Admin only)' })
+  @ApiResponse({ status: 200, type: LeadInvitationResponseDto })
+  async getInvitation(@Param('id') id: string): Promise<LeadInvitationResponseDto> {
+    return this.invitationsService.getLeadInvitation(id);
+  }
+
+  /**
+   * S2S ONLY — Activation callback sent by SAMTS Catalog (idempotent).
+   * Protected by the shared service key (`X-Service-Key`), not by user JWT.
+   */
+  @Post('invitations/callback')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(ServiceKeyGuard)
+  @ApiHeader({ name: 'X-Service-Key', description: 'Clave de servicio compartida (S2S)' })
+  @ApiOperation({ summary: 'Activation callback from SAMTS Catalog (service key only)' })
+  @ApiResponse({ status: 200, type: LeadInvitationResponseDto })
+  async activationCallback(
+    @Body() dto: ActivationCallbackDto,
+  ): Promise<LeadInvitationResponseDto> {
+    return this.invitationsService.handleActivationCallback(dto);
   }
 
   /**
